@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kulay Kape by Mong's - QR Loyalty Card System</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        coffee: {
+                            50: '#f3fff9',
+                            100: '#e3fdf1',
+                            200: '#c9f6df',
+                            300: '#aaf0d1',
+                            400: '#7fe3b8',
+                            500: '#5ad8a0',
+                            600: '#3ebd8a',
+                            700: '#2da275',
+                            800: '#238361',
+                            900: '#1d6954',
+                            950: '#153f39',
+                        },
+                        cream: '#F5FFF9',
+                        espresso: '#183B36',
+                        latte: '#DFFCF1'
+                    },
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #ecfff7;
+            color: #183B36;
+        }
+        .font-serif-title {
+            font-family: 'Playfair Display', serif;
+        }
+        /* Custom animations */
+        @keyframes stampPop {
+            0% { transform: scale(3) rotate(-15deg); opacity: 0; }
+            70% { transform: scale(0.9) rotate(5deg); opacity: 1; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        .animate-stamp {
+            animation: stampPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes shine {
+            100% { left: 125%; }
+        }
+        .shine-effect {
+            position: relative;
+            overflow: hidden;
+        }
+        .shine-effect::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                60deg,
+                rgba(255,255,255,0) 20%,
+                rgba(255,255,255,0.25) 50%,
+                rgba(255,255,255,0) 80%
+            );
+            transform: rotate(30deg);
+            animation: shine 4s infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-coffee-500 selection:text-white">
+
+    <!-- Navigation / Header -->
+    <header class="bg-coffee-900 text-cream shadow-lg sticky top-0 z-40">
+        <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-full bg-coffee-500 flex items-center justify-center text-white shadow-inner">
+                    <i class="fa-solid fa-mug-hot text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="font-serif-title text-xl font-bold tracking-wide leading-none text-coffee-200">Kulay Kape by Mong's</h1>
+                    <p class="text-xs text-coffee-300 font-light">Digital Stamp Card System</p>
+                </div>
+            </div>
+            
+            <!-- Staff Toggle Button -->
+            <button id="nav-mode-btn" onclick="toggleView()" class="text-xs bg-coffee-800 hover:bg-coffee-700 text-coffee-200 px-3 py-1.5 rounded-full border border-coffee-700 transition flex items-center gap-1.5">
+                <i class="fa-solid fa-user-shield text-coffee-400"></i>
+                <span id="nav-mode-text">Staff View</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-md mx-auto w-full px-4 py-5 flex-grow space-y-6">
+
+        <!-- Toast Notification Area -->
+        <div id="toast" class="hidden fixed top-16 left-1/2 transform -translate-x-1/2 z-50 w-11/12 max-w-sm bg-coffee-950 text-white p-4 rounded-xl shadow-2xl border border-coffee-500 flex items-start gap-3 transition-all duration-300">
+            <div id="toast-icon" class="text-coffee-400 text-xl mt-0.5"><i class="fa-solid fa-circle-info"></i></div>
+            <div class="flex-1">
+                <h4 id="toast-title" class="font-semibold text-sm">Notice</h4>
+                <p id="toast-message" class="text-xs text-coffee-200 mt-0.5"></p>
+            </div>
+            <button onclick="hideToast()" class="text-coffee-400 hover:text-white text-sm"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW 1: CUSTOMER LOYALTY CARD VIEW        -->
+        <!-- ========================================== -->
+        <div id="customer-view" class="space-y-6">
+
+            <!-- Customer Identity Box / Switcher -->
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-coffee-100 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-9 h-9 rounded-full bg-coffee-100 text-coffee-800 font-bold flex items-center justify-center text-sm" id="user-avatar">
+                        JD
+                    </div>
+                    <div>
+                        <div class="text-xs text-coffee-500 font-medium">Loyal Customer Account:</div>
+                        <div class="font-semibold text-sm text-coffee-950" id="display-customer-name">Juan Dela Cruz</div>
+                        <div class="text-[11px] text-gray-500" id="display-customer-id">ID: KK-1001</div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="openUserModal()" class="text-xs text-coffee-600 hover:text-coffee-800 font-medium bg-coffee-50 hover:bg-coffee-100 px-3 py-1.5 rounded-lg border border-coffee-200 transition">
+                        <i class="fa-solid fa-id-card mr-1"></i> Login with ID
+                    </button>
+                    <button onclick="openUserModal()" class="hidden text-xs text-coffee-600 hover:text-coffee-800 font-medium bg-coffee-50 hover:bg-coffee-100 px-3 py-1.5 rounded-lg border border-coffee-200 transition">
+                        <i class="fa-solid fa-user-pen mr-1"></i> Change
+                    </button>
+                </div>
+            </div>
+
+            <!-- Digital Loyalty Card (The 5-Stamp Card) -->
+            <div class="bg-gradient-to-br from-coffee-900 via-coffee-800 to-coffee-950 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden border border-coffee-700 shine-effect">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <span class="text-[10px] tracking-widest uppercase text-coffee-300 font-semibold bg-coffee-950/60 px-2 py-0.5 rounded-full border border-coffee-700/50">Digital Loyalty Pass</span>
+                        <h2 class="font-serif-title text-2xl font-bold mt-1 text-coffee-100">Kulay Kape by Mong's Digital Loyalty Card</h2>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs text-coffee-300 block">Progress</span>
+                        <span class="text-lg font-bold text-amber-400" id="stamp-counter-text">0 / 5</span>
+                    </div>
+                </div>
+
+                <p class="text-xs text-coffee-200 mb-5 font-light">
+                    Kumuha ng 1 stamp bawat pagbili! Makatanggap ng <span class="font-bold text-amber-300">LIBRENG INUMIN</span> pagkapuno ng 5 stamps!
+                </p>
+
+                <!-- Stamp Grid (5 Slots) -->
+                <div class="grid grid-cols-5 gap-2 my-2">
+                    <!-- Slot 1 -->
+                    <div class="stamp-slot bg-coffee-950/70 border-2 border-dashed border-coffee-600/60 rounded-xl aspect-square flex flex-col items-center justify-center relative p-1 transition-all" id="slot-1">
+                        <div class="stamp-icon hidden text-amber-400 text-2xl flex flex-col items-center animate-stamp">
+                            <i class="fa-solid fa-mug-hot"></i>
+                            <span class="text-[8px] font-bold text-coffee-200 mt-0.5">STAMP 1</span>
+                        </div>
+                        <span class="slot-number text-xs font-bold text-coffee-500">1</span>
+                    </div>
+
+                    <!-- Slot 2 -->
+                    <div class="stamp-slot bg-coffee-950/70 border-2 border-dashed border-coffee-600/60 rounded-xl aspect-square flex flex-col items-center justify-center relative p-1 transition-all" id="slot-2">
+                        <div class="stamp-icon hidden text-amber-400 text-2xl flex flex-col items-center animate-stamp">
+                            <i class="fa-solid fa-mug-hot"></i>
+                            <span class="text-[8px] font-bold text-coffee-200 mt-0.5">STAMP 2</span>
+                        </div>
+                        <span class="slot-number text-xs font-bold text-coffee-500">2</span>
+                    </div>
+
+                    <!-- Slot 3 -->
+                    <div class="stamp-slot bg-coffee-950/70 border-2 border-dashed border-coffee-600/60 rounded-xl aspect-square flex flex-col items-center justify-center relative p-1 transition-all" id="slot-3">
+                        <div class="stamp-icon hidden text-amber-400 text-2xl flex flex-col items-center animate-stamp">
+                            <i class="fa-solid fa-mug-hot"></i>
+                            <span class="text-[8px] font-bold text-coffee-200 mt-0.5">STAMP 3</span>
+                        </div>
+                        <span class="slot-number text-xs font-bold text-coffee-500">3</span>
+                    </div>
+
+                    <!-- Slot 4 -->
+                    <div class="stamp-slot bg-coffee-950/70 border-2 border-dashed border-coffee-600/60 rounded-xl aspect-square flex flex-col items-center justify-center relative p-1 transition-all" id="slot-4">
+                        <div class="stamp-icon hidden text-amber-400 text-2xl flex flex-col items-center animate-stamp">
+                            <i class="fa-solid fa-mug-hot"></i>
+                            <span class="text-[8px] font-bold text-coffee-200 mt-0.5">STAMP 4</span>
+                        </div>
+                        <span class="slot-number text-xs font-bold text-coffee-500">4</span>
+                    </div>
+
+                    <!-- Slot 5 (REWARD SLOT) -->
+                    <div class="stamp-slot bg-amber-500/10 border-2 border-dashed border-amber-500/50 rounded-xl aspect-square flex flex-col items-center justify-center relative p-1 transition-all" id="slot-5">
+                        <div class="stamp-icon hidden text-amber-300 text-2xl flex flex-col items-center animate-stamp">
+                            <i class="fa-solid fa-gift text-amber-300"></i>
+                            <span class="text-[8px] font-bold text-amber-200 mt-0.5">FREE!</span>
+                        </div>
+                        <div class="slot-number flex flex-col items-center text-amber-400">
+                            <i class="fa-solid fa-crown text-xs"></i>
+                            <span class="text-[10px] font-bold">FREE</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cycle Status -->
+                <div class="mt-4 pt-3 border-t border-coffee-800/80 flex justify-between items-center text-[11px] text-coffee-300">
+                    <span><i class="fa-solid fa-rotate text-coffee-400 mr-1"></i> Card Cycle: <span id="cycle-count" class="font-bold text-white">1</span></span>
+                    <span>Last visit: <span id="last-visit-date" class="text-coffee-200">Today</span></span>
+                </div>
+                <div class="mt-2 space-y-1 text-[10px] text-coffee-300 text-right">
+                    <div><i class="fa-solid fa-calendar-days text-coffee-400 mr-1"></i> Monthly refresh: <span id="monthly-refresh-date" class="text-coffee-100 font-semibold">1st of every month</span></div>
+                    <div><i class="fa-solid fa-clock text-coffee-400 mr-1"></i> Last visit time: <span id="last-visit-time" class="text-coffee-100 font-semibold">--:--</span></div>
+                </div>
+            </div>
+
+            <!-- Reward Available Card (Hidden until 5 stamps) -->
+            <div id="reward-banner" class="hidden bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-2xl p-5 shadow-lg border border-amber-300 transform transition-all duration-300">
+                <div class="flex items-center space-x-4">
+                    <div class="w-14 h-14 bg-white text-amber-600 rounded-full flex items-center justify-center text-2xl shadow-md flex-shrink-0">
+                        <i class="fa-solid fa-gift animate-bounce"></i>
+                    </div>
+                    <div class="flex-1">
+                        <span class="bg-amber-800/40 text-amber-100 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full">Congratulations!</span>
+                        <h3 class="font-serif-title font-bold text-lg leading-tight mt-0.5">Free Drink Unlocked!</h3>
+                        <p class="text-xs text-amber-100 mt-1">Naka-5 stamps ka na! Ipakita ang voucher na ito sa Barista.</p>
+                    </div>
+                </div>
+                
+                <div class="mt-4 bg-white/10 backdrop-blur-md rounded-xl p-3 border border-white/20 text-center">
+                    <span class="text-[10px] uppercase text-amber-200 tracking-wider block">Redemption Code</span>
+                    <span id="voucher-code-display" class="font-mono text-xl font-bold tracking-widest text-white">FREE-KAPE-882</span>
+                </div>
+
+                <button onclick="claimRewardNow()" class="mt-3 w-full py-2.5 bg-white text-amber-800 font-bold rounded-xl text-sm shadow hover:bg-amber-50 transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-check-circle"></i> Redemed / Claim Free Drink Now
+                </button>
+            </div>
+
+            <!-- Log Purchase Form -->
+            <div class="bg-white rounded-3xl p-5 shadow-md border border-coffee-100 space-y-4">
+                <div class="border-b border-coffee-100 pb-3 flex items-center justify-between">
+                    <div>
+                        <h3 class="font-serif-title font-bold text-coffee-950 text-lg flex items-center gap-2">
+                            <i class="fa-solid fa-qrcode text-coffee-500"></i> Log Today's Purchase
+                        </h3>
+                        <p class="text-xs text-gray-500">I-record ang order para makakuha ng stamp.</p>
+                    </div>
+                    <span class="text-xs bg-coffee-100 text-coffee-800 px-2 py-1 rounded-full font-semibold">1 Stamp / Day</span>
+                </div>
+
+                <form id="stamp-form" onsubmit="handleLogPurchase(event)" class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-coffee-800 mb-1">Select Menu Items</label>
+                        <div class="grid grid-cols-2 gap-2 max-h-44 overflow-y-auto rounded-xl border border-coffee-200 bg-coffee-50/30 p-2">
+                            <label class="flex items-center gap-2 text-xs text-coffee-900 bg-white/60 px-2 py-1.5 rounded-lg border border-coffee-100"><input type="checkbox" class="menu-item" value="Fruitshake"> Fruitshake</label>
+                            <label class="flex items-center gap-2 text-xs text-coffee-900 bg-white/60 px-2 py-1.5 rounded-lg border border-coffee-100"><input type="checkbox" class="menu-item" value="Soda"> Soda</label>
+                            <label class="flex items-center gap-2 text-xs text-coffee-900 bg-white/60 px-2 py-1.5 rounded-lg border border-coffee-100"><input type="checkbox" class="menu-item" value="Fruit Tea"> Fruit Tea</label>
+                            <label class="flex items-center gap-2 text-xs text-coffee-900 bg-white/60 px-2 py-1.5 rounded-lg border border-coffee-100"><input type="checkbox" class="menu-item" value="Sandwich"> Sandwich</label>
+                            <label class="flex items-center gap-2 text-xs text-coffee-900 bg-white/60 px-2 py-1.5 rounded-lg border border-coffee-100"><input type="checkbox" class="menu-item" value="Rice Meal"> Rice Meal</label>
+                            <label class="flex items-center gap-2 text-xs text-coffee-900 bg-white/60 px-2 py-1.5 rounded-lg border border-coffee-100"><input type="checkbox" class="menu-item" value="Pasta"> Pasta</label>
+                            <label class="flex items-center gap-2 text-xs text-coffee-900 bg-white/60 px-2 py-1.5 rounded-lg border border-coffee-100"><input type="checkbox" class="menu-item" value="Waffles"> Waffles</label>
+                            <label class="flex items-center gap-2 text-xs text-coffee-900 bg-white/60 px-2 py-1.5 rounded-lg border border-coffee-100"><input type="checkbox" class="menu-item" value="Snacks"> Snacks</label>
+                            <label class="flex items-center gap-2 text-xs text-coffee-900 bg-white/60 px-2 py-1.5 rounded-lg border border-coffee-100"><input type="checkbox" class="menu-item" value="Ice Coffee"> Ice Coffee</label>
+                            <label class="flex items-center gap-2 text-xs text-coffee-900 bg-white/60 px-2 py-1.5 rounded-lg border border-coffee-100"><input type="checkbox" class="menu-item" value="Non-Coffee"> Non-Coffee</label>
+                            <label class="flex items-center gap-2 text-xs text-coffee-900 bg-white/60 px-2 py-1.5 rounded-lg border border-coffee-100"><input type="checkbox" class="menu-item" value="Hot Coffee"> Hot Coffee</label>
+                            <label class="flex items-center gap-2 text-xs text-coffee-900 bg-white/60 px-2 py-1.5 rounded-lg border border-coffee-100"><input type="checkbox" class="menu-item" value="Milktea"> Milktea</label>
+                            <label class="flex items-center gap-2 text-xs text-coffee-900 bg-white/60 px-2 py-1.5 rounded-lg border border-coffee-100"><input type="checkbox" class="menu-item" value="Cream Frappe"> Cream Frappe</label>
+                            <label class="flex items-center gap-2 text-xs text-coffee-900 bg-white/60 px-2 py-1.5 rounded-lg border border-coffee-100"><input type="checkbox" class="menu-item" value="Frappe Coffee"> Frappe Coffee</label>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-coffee-800 mb-1">Total Price</label>
+                            <input type="number" id="receipt-no" step="0.01" min="0" required placeholder="e.g., 150.00" class="w-full text-sm px-3.5 py-2.5 rounded-xl border border-coffee-200 focus:outline-none focus:ring-2 focus:ring-coffee-500/50 bg-coffee-50/30">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-coffee-800 mb-1">Date</label>
+                            <input type="date" id="purchase-date" required class="w-full text-sm px-3 py-2.5 rounded-xl border border-coffee-200 focus:outline-none focus:ring-2 focus:ring-coffee-500/50 bg-coffee-50/30">
+                        </div>
+                    </div>
+
+                    <!-- Security Verification PIN -->
+                    <div class="pt-2 border-t border-dashed border-coffee-200">
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="block text-xs font-bold text-coffee-900 flex items-center gap-1">
+                                <i class="fa-solid fa-lock text-amber-600"></i> Staff Verification PIN
+                            </label>
+                            <span class="text-[10px] text-gray-400">hingin sa Cashier/Barista</span>
+                        </div>
+                        <p class="text-[11px] text-gray-500 mb-2">Humingi ng 6-digit code sa Cashier bago mag-submit upang maiwasan ang fake stamps.</p>
+                        <div class="relative">
+                            <input type="password" id="staff-pin-input" maxlength="6" required placeholder="Enter Staff PIN (Default: 1234)" class="w-full text-center tracking-widest text-base font-bold px-3 py-2.5 rounded-xl border-2 border-coffee-300 focus:border-coffee-600 focus:outline-none bg-amber-50/30 text-coffee-900">
+                        </div>
+                    </div>
+
+                    <button type="submit" id="btn-submit-stamp" class="w-full py-3 bg-coffee-700 hover:bg-coffee-800 text-white font-semibold rounded-xl text-sm shadow-md transition flex items-center justify-center gap-2 mt-2">
+                        <i class="fa-solid fa-stamp"></i> Claim Stamp Now
+                    </button>
+                </form>
+            </div>
+
+            <!-- Transaction History Card -->
+            <div class="bg-white rounded-3xl p-5 shadow-md border border-coffee-100">
+                <h3 class="font-serif-title font-bold text-coffee-950 text-base mb-3 flex items-center justify-between">
+                    <span><i class="fa-solid fa-clock-rotate-left text-coffee-500 mr-2"></i> Stamp History</span>
+                    <span class="text-xs font-sans text-gray-400 font-normal" id="total-logs-count">0 records</span>
+                </h3>
+                <div id="history-list" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                    <!-- History items populated by JS -->
+                    <p class="text-center text-xs text-gray-400 py-4">Wala pang na-i-log na purchase.</p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW 2: STAFF / CASHIER DASHBOARD          -->
+        <!-- ========================================== -->
+        <div id="staff-view" class="hidden space-y-6">
+
+            <!-- Staff Header Banner -->
+            <div class="bg-coffee-950 text-white rounded-3xl p-5 shadow-lg border border-coffee-800 relative">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <span class="bg-amber-500 text-coffee-950 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Staff Dashboard</span>
+                        <h2 class="font-serif-title text-xl font-bold mt-1 text-coffee-100">Barista Verification</h2>
+                    </div>
+                    <button onclick="toggleView()" class="text-xs bg-coffee-800 text-coffee-200 px-2.5 py-1 rounded-lg border border-coffee-700 hover:bg-coffee-700">
+                        <i class="fa-solid fa-arrow-left mr-1"></i> Back to App
+                    </button>
+                </div>
+
+                <!-- Daily PIN Settings Box -->
+                <div class="mt-4 bg-coffee-900/80 rounded-2xl p-3 border border-coffee-800 flex items-center justify-between">
+                    <div>
+                        <div class="text-[11px] text-coffee-300">Active Staff Verification Code:</div>
+                        <div class="font-mono text-xl font-bold text-amber-400 tracking-wider" id="current-pin-display">1234</div>
+                    </div>
+                    <button onclick="promptChangePIN()" class="text-xs bg-coffee-700 hover:bg-coffee-600 text-white px-3 py-1.5 rounded-xl border border-coffee-600 transition">
+                        <i class="fa-solid fa-key mr-1"></i> Change Code
+                    </button>
+                </div>
+            </div>
+
+            <!-- Customer Lookup & Manual Overrides -->
+            <div class="bg-white rounded-3xl p-5 shadow-md border border-coffee-100 space-y-4">
+                <h3 class="font-serif-title font-bold text-coffee-950 text-base border-b border-coffee-100 pb-2">
+                    <i class="fa-solid fa-sliders text-coffee-600 mr-1"></i> Manual Customer Management
+                </h3>
+
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-coffee-800 mb-1">Current Active Customer</label>
+                        <div class="p-3 bg-coffee-50 rounded-xl border border-coffee-200 text-xs flex justify-between items-center">
+                            <div>
+                                <span class="font-bold text-coffee-900 block" id="staff-customer-name">Juan Dela Cruz</span>
+                                <span class="text-gray-500" id="staff-customer-phone">09171234567</span>
+                            </div>
+                            <span class="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-md font-bold" id="staff-customer-stamps">
+                                0 Stamps
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="staffAdjustStamp(1)" class="py-2.5 bg-coffee-700 hover:bg-coffee-800 text-white font-medium rounded-xl text-xs transition flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-plus-circle"></i> Add 1 Stamp
+                        </button>
+                        <button onclick="staffAdjustStamp(-1)" class="py-2.5 bg-gray-200 hover:bg-gray-300 text-coffee-900 font-medium rounded-xl text-xs transition flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-minus-circle"></i> Remove Stamp
+                        </button>
+                    </div>
+
+                    <button onclick="staffResetStamps()" class="w-full py-2 bg-red-50 hover:bg-red-100 text-red-700 font-medium rounded-xl text-xs border border-red-200 transition">
+                        <i class="fa-solid fa-rotate-left mr-1"></i> Reset Customer Stamps to 0
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-3xl p-5 shadow-md border border-coffee-100 space-y-3">
+                <div class="flex items-center justify-between border-b border-coffee-100 pb-2">
+                    <h3 class="font-serif-title font-bold text-coffee-950 text-base">
+                        <i class="fa-solid fa-users text-coffee-600 mr-1"></i> All Registered Accounts
+                    </h3>
+                    <button type="button" onclick="refreshStaffAccounts()" class="text-[10px] bg-coffee-700 hover:bg-coffee-800 text-white px-2.5 py-1.5 rounded-lg flex items-center gap-1">
+                        <i class="fa-solid fa-rotate-right"></i> Refresh
+                    </button>
+                </div>
+                <div id="staff-account-list" class="space-y-2 max-h-64 overflow-y-auto pr-1">
+                    <p class="text-center text-xs text-gray-400 py-4">No customer accounts saved yet.</p>
+                </div>
+            </div>
+
+            <!-- System Info & Research Notes -->
+            <div class="bg-amber-50/60 rounded-3xl p-4 border border-amber-200 text-xs text-coffee-900 space-y-2">
+                <div class="font-bold text-coffee-950 flex items-center gap-1.5 text-sm">
+                    <i class="fa-solid fa-flask-vial text-coffee-600"></i> Research Prototype Info
+                </div>
+                <p>
+                    <strong>Security Feature:</strong> Prevented customers from self-awarding unlimited stamps by requiring the daily 4-digit Cashier PIN.
+                </p>
+                <p>
+                    <strong>Reset Logic:</strong> Upon reaching 5 stamps and claiming the free drink, the card resets to 0 while keeping record history saved in local memory.
+                </p>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Modal: Change Customer Info -->
+    <div id="user-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-coffee-200 space-y-4 transform transition-all">
+            <div class="flex justify-between items-center border-b border-coffee-100 pb-3">
+                <h3 id="customer-account-title" class="font-serif-title font-bold text-coffee-900 text-lg">Customer Account</h3>
+                <button onclick="closeUserModal()" class="text-gray-400 hover:text-gray-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <p class="text-xs text-gray-500">Use your assigned Customer ID to log in again and continue your loyalty card.</p>
+
+            <form onsubmit="handleSaveUser(event)" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-coffee-800 mb-1">Assigned Customer ID</label>
+                    <input type="text" id="input-user-id" placeholder="Assigned automatically" readonly class="w-full text-sm px-3.5 py-2.5 rounded-xl border border-coffee-200 bg-gray-50 focus:ring-2 focus:ring-coffee-500/50 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-coffee-800 mb-1">Real Full Name</label>
+                    <input type="text" id="input-user-name" pattern="[A-Za-z ]+" title="Please enter your real full name with letters only" required placeholder="e.g., Maria Santos" class="w-full text-sm px-3.5 py-2.5 rounded-xl border border-coffee-200 focus:ring-2 focus:ring-coffee-500/50 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-coffee-800 mb-1">Mobile Number</label>
+                    <input type="tel" id="input-user-phone" inputmode="numeric" pattern="[0-9]{11}" title="Please enter an 11-digit mobile number" required placeholder="e.g., 09171234567" class="w-full text-sm px-3.5 py-2.5 rounded-xl border border-coffee-200 focus:ring-2 focus:ring-coffee-500/50 outline-none">
+                </div>
+                
+                <div class="pt-2 flex gap-2">
+                    <button type="button" onclick="closeUserModal()" class="w-1/2 py-2.5 bg-gray-100 text-gray-700 font-semibold rounded-xl text-xs hover:bg-gray-200">Cancel</button>
+                    <button type="submit" class="w-1/2 py-2.5 bg-coffee-700 text-white font-semibold rounded-xl text-xs hover:bg-coffee-800 shadow">Save Profile</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-coffee-950 text-coffee-400 text-center text-xs py-4 border-t border-coffee-900 mt-6">
+        <p>© 2026 Kulay Kape by Mong's Loyalty System • Research Prototype</p>
+        <p class="mt-1 text-coffee-500">Developed by Althea Nicole Silang</p>
+    </footer>
+
+    <script>
+        // ==========================================
+        // STATE MANAGEMENT & LOCAL STORAGE
+        // ==========================================
+        
+        // System Settings State
+        let systemState = {
+            staffPin: "314159",
+            currentView: "customer", // 'customer' or 'staff'
+            staffAccessMode: "single-master",
+            masterStaffName: "Mong's Admin"
+        };
+
+        // Active Customer State
+        let currentUser = {
+            customerId: "",
+            name: "",
+            phone: "",
+            stamps: 0,
+            cyclesCompleted: 0,
+            lastVisit: null
+        };
+
+        // Logs/Transactions Database
+        let purchaseLogs = [];
+        let customerProfiles = [];
+        const sharedStateKey = 'kulay_kape_single_staff_data';
+        const sharedSyncChannel = 'kulay_kape_live_sync';
+
+        function applyIncomingState(data) {
+            if (!data) return;
+            if (data.systemState) systemState = data.systemState;
+            if (data.currentUser) currentUser = data.currentUser;
+            if (data.purchaseLogs) purchaseLogs = data.purchaseLogs;
+            if (data.customerProfiles) customerProfiles = data.customerProfiles;
+            if (!customerProfiles.length && currentUser.customerId) {
+                customerProfiles.push({ ...currentUser });
+            }
+            ensureCustomerId();
+            updateCustomerUI();
+            renderHistory();
+            renderStaffAccounts();
+        }
+
+        function broadcastSystemSync() {
+            const dataToSave = {
+                systemState: systemState,
+                currentUser: currentUser,
+                purchaseLogs: purchaseLogs,
+                customerProfiles: customerProfiles
+            };
+            localStorage.setItem(sharedStateKey, JSON.stringify(dataToSave));
+
+            if ('BroadcastChannel' in window) {
+                const channel = new BroadcastChannel(sharedSyncChannel);
+                channel.postMessage({ type: 'kulay_kape_sync', data: dataToSave });
+                channel.close();
+            }
+        }
+
+        // Initialization
+        window.onload = function() {
+            // Set default date input to today
+            document.getElementById('purchase-date').valueAsDate = new Date();
+
+            // Load data from LocalStorage
+            loadSystemData();
+            refreshStampRecordForMonth(new Date().toISOString().split('T')[0]);
+
+            // Render Initial UI
+            updateCustomerUI();
+            renderHistory();
+            updateSystemRefreshTime();
+
+            if (systemState.currentView !== 'staff' && (!normalizeCustomerName(currentUser.name) || !/^\d{11}$/.test(currentUser.phone || ''))) {
+                openUserModal();
+                document.getElementById('customer-account-title').innerText = 'Customer Login';
+                document.getElementById('input-user-id').value = currentUser.customerId || '';
+                document.getElementById('input-user-name').value = currentUser.name || '';
+                document.getElementById('input-user-phone').value = currentUser.phone || '';
+            }
+
+            setInterval(() => {
+                const today = new Date();
+                const currentDate = today.toISOString().split('T')[0];
+                if (currentUser.lastVisit && currentUser.lastVisit !== currentDate) {
+                    refreshStampRecordForMonth(currentDate);
+                    updateCustomerUI();
+                    renderHistory();
+                }
+                if (today.getDate() === 1) {
+                    if (currentUser.stamps > 0 || currentUser.lastVisit) {
+                        currentUser.stamps = 0;
+                        currentUser.lastVisit = null;
+                        currentUser.cyclesCompleted += 1;
+                        saveSystemData();
+                        updateCustomerUI();
+                        renderHistory();
+                    }
+                }
+                updateSystemRefreshTime();
+            }, 60000);
+        };
+
+        // Save data to localStorage
+        function saveSystemData() {
+            broadcastSystemSync();
+        }
+
+        function generateCustomerId() {
+            return 'KK-' + Date.now().toString().slice(-6);
+        }
+
+        function ensureCustomerId() {
+            if (!currentUser.customerId) {
+                currentUser.customerId = generateCustomerId();
+            }
+        }
+
+        function syncCurrentUserToProfiles() {
+            const existingIndex = customerProfiles.findIndex(profile => profile.customerId === currentUser.customerId);
+            if (existingIndex >= 0) {
+                customerProfiles[existingIndex] = { ...currentUser };
+            } else if (currentUser.customerId) {
+                customerProfiles.push({ ...currentUser });
+            }
+        }
+
+        function restoreCurrentUserFromProfile(customerId) {
+            const profile = customerProfiles.find(entry => entry.customerId === customerId);
+            if (!profile) return null;
+
+            currentUser = { ...profile };
+            ensureCustomerId();
+            saveSystemData();
+            updateCustomerUI();
+            renderHistory();
+            return currentUser;
+        }
+
+        // Load data from localStorage
+        function loadSystemData() {
+            const saved = localStorage.getItem(sharedStateKey);
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    if (parsed.systemState) systemState = parsed.systemState;
+                    if (parsed.currentUser) currentUser = parsed.currentUser;
+                    if (parsed.purchaseLogs) purchaseLogs = parsed.purchaseLogs;
+                    if (parsed.customerProfiles) customerProfiles = parsed.customerProfiles;
+                } catch(e) {
+                    console.error("Error loading saved loyalty state:", e);
+                }
+            }
+
+            if (!customerProfiles.length && currentUser.customerId) {
+                customerProfiles.push({ ...currentUser });
+            }
+
+            ensureCustomerId();
+        }
+
+        window.addEventListener('storage', (event) => {
+            if (event.key !== sharedStateKey || !event.newValue) return;
+            try {
+                const parsed = JSON.parse(event.newValue);
+                applyIncomingState(parsed);
+            } catch (e) {
+                console.error('Error syncing shared loyalty state:', e);
+            }
+        });
+
+        if ('BroadcastChannel' in window) {
+            const liveChannel = new BroadcastChannel(sharedSyncChannel);
+            liveChannel.onmessage = (event) => {
+                if (!event.data || event.data.type !== 'kulay_kape_sync' || !event.data.data) return;
+                applyIncomingState(event.data.data);
+            };
+        }
+
+        function refreshStampRecordForMonth(dateString) {
+            if (!currentUser.lastVisit || !dateString) return;
+
+            const lastDate = new Date(currentUser.lastVisit);
+            const currentDate = new Date(dateString);
+
+            if (
+                lastDate.getFullYear() !== currentDate.getFullYear() ||
+                lastDate.getMonth() !== currentDate.getMonth()
+            ) {
+                currentUser.stamps = 0;
+                currentUser.lastVisit = null;
+                saveSystemData();
+            }
+        }
+
+        // ==========================================
+        // PURCHASE & STAMP LOGIC
+        // ==========================================
+
+        function handleLogPurchase(e) {
+            e.preventDefault();
+
+            const selectedItems = Array.from(document.querySelectorAll('.menu-item:checked')).map(item => item.value);
+            const orderItem = selectedItems.join(', ');
+            const totalPrice = document.getElementById('receipt-no').value.trim();
+            const dateVal = document.getElementById('purchase-date').value;
+            const enteredPin = document.getElementById('staff-pin-input').value.trim();
+
+            refreshStampRecordForMonth(dateVal);
+
+            if (!orderItem) {
+                showToast("Select Item", "Please choose at least one menu item before submitting.", "error");
+                return;
+            }
+
+            // 1. PIN Security Verification
+            if (enteredPin !== systemState.staffPin) {
+                showToast("Maling Staff PIN!", "Humingi ng tamang 6-digit Cashier Code mula sa Staff upang ma-verify ang pagbili.", "error");
+                return;
+            }
+
+            // 2. Strict Daily Safeguard: only one stamp per customer per day
+            const alreadyLoggedToday = purchaseLogs.some(log => 
+                log.phone === currentUser.phone && log.date === dateVal && log.stampEarned === 1
+            );
+
+            if (alreadyLoggedToday) {
+                showToast("Stamp Already Used", `One stamp has already been earned for ${dateVal}. No double stamp is allowed for today.`, "error");
+                return;
+            }
+
+            // 3. Process Stamp Addition
+            currentUser.stamps += 1;
+            currentUser.lastVisit = dateVal;
+
+            // Generate Log Entry
+            const newLog = {
+                id: 'LOG-' + Date.now().toString().slice(-6),
+                phone: currentUser.phone,
+                userName: currentUser.name,
+                item: orderItem,
+                receipt: `₱${Number(totalPrice).toFixed(2)}`,
+                date: dateVal,
+                stampEarned: 1,
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+
+            purchaseLogs.unshift(newLog); // Add to top of list
+
+            // Clear inputs
+            document.querySelectorAll('.menu-item').forEach(item => item.checked = false);
+            document.getElementById('receipt-no').value = '';
+            document.getElementById('staff-pin-input').value = '';
+
+            // Check if 5th stamp achieved
+            if (currentUser.stamps >= 5) {
+                currentUser.stamps = 5; // Cap at 5
+                showToast("CARD COMPLETED! 🎉", "Naka-5 stamps ka na! Maaari mo nang i-claim ang iyong Libreng Inumin!", "success");
+            } else {
+                showToast("Stamp Successfully Logged!", `Dagdag 1 stamp para kay ${currentUser.name}. (${currentUser.stamps}/5 Stamps)`, "success");
+            }
+
+            saveSystemData();
+            updateCustomerUI();
+            renderHistory();
+        }
+
+        // ==========================================
+        // REWARD & VOUCHER LOGIC
+        // ==========================================
+
+        function claimRewardNow() {
+            if (currentUser.stamps < 5) return;
+
+            const confirmClaim = confirm("Ipakita sa Barista bago i-click ang OK. Siguradong iki-claim na ang LIBRENG INUMIN?");
+            if (!confirmClaim) return;
+
+            // Increment cycle & Reset Stamps
+            currentUser.cyclesCompleted += 1;
+            currentUser.stamps = 0;
+
+            // Log redemption
+            purchaseLogs.unshift({
+                id: 'REDEEM-' + Date.now().toString().slice(-6),
+                phone: currentUser.phone,
+                userName: currentUser.name,
+                item: '🎁 REWARD CLAIMED: Free Drink',
+                receipt: 'VOUCHER',
+                date: new Date().toISOString().split('T')[0],
+                stampEarned: 0,
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            });
+
+            saveSystemData();
+            updateCustomerUI();
+            renderHistory();
+
+            showToast("Naclaim na ang Libreng Inumin!", "Nag-reset na ang iyong stamp card pabalik sa 0 para sa susunod mong rewards cycle!", "success");
+        }
+
+        // ==========================================
+        // UI UPDATES & STAMP DISPLAY
+        // ==========================================
+
+        function updateSystemRefreshTime() {
+            const today = new Date();
+            const nextRefresh = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+            const formatted = nextRefresh.toLocaleDateString([], {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            });
+            document.getElementById('monthly-refresh-date').innerText = `1st of ${today.toLocaleString([], { month: 'long' })} • ${formatted}`;
+        }
+
+        function updateCustomerUI() {
+            renderStaffAccounts();
+
+            // Update User Profile Info
+            document.getElementById('display-customer-name').innerText = currentUser.name;
+            document.getElementById('display-customer-id').innerText = `ID: ${currentUser.customerId}`;
+            document.getElementById('staff-customer-name').innerText = currentUser.name;
+            document.getElementById('staff-customer-phone').innerText = currentUser.phone;
+            document.getElementById('staff-customer-stamps').innerText = `${currentUser.stamps} / 5 Stamps`;
+
+            // Avatar Initials
+            const initials = currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'S';
+            document.getElementById('user-avatar').innerText = initials;
+
+            // Update Counter & Cycle
+            document.getElementById('stamp-counter-text').innerText = `${currentUser.stamps} / 5`;
+            document.getElementById('cycle-count').innerText = currentUser.cyclesCompleted + 1;
+            document.getElementById('last-visit-date').innerText = currentUser.lastVisit || 'No visits yet';
+            document.getElementById('last-visit-time').innerText = currentUser.lastVisit
+                ? new Date(`${currentUser.lastVisit}T12:00:00`).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                : '--:--';
+
+            // Render Stamps in Visual Slots (1 to 5)
+            for (let i = 1; i <= 5; i++) {
+                const slot = document.getElementById(`slot-${i}`);
+                const stampIcon = slot.querySelector('.stamp-icon');
+                const slotNum = slot.querySelector('.slot-number');
+
+                if (i <= currentUser.stamps) {
+                    // Active Stamp
+                    slot.classList.add('bg-amber-400/20', 'border-amber-400');
+                    slot.classList.remove('bg-coffee-950/70', 'border-coffee-600/60');
+                    stampIcon.classList.remove('hidden');
+                    if (slotNum) slotNum.classList.add('hidden');
+                } else {
+                    // Empty Slot
+                    slot.classList.remove('bg-amber-400/20', 'border-amber-400');
+                    slot.classList.add('bg-coffee-950/70', 'border-coffee-600/60');
+                    stampIcon.classList.add('hidden');
+                    if (slotNum) slotNum.classList.remove('hidden');
+                }
+            }
+
+            // Show or Hide Reward Voucher Banner
+            const rewardBanner = document.getElementById('reward-banner');
+            if (currentUser.stamps >= 5) {
+                rewardBanner.classList.remove('hidden');
+                // Generate unique voucher code
+                const voucherCode = 'FREE-' + currentUser.phone.slice(-4) + '-' + Math.floor(100 + Math.random() * 900);
+                document.getElementById('voucher-code-display').innerText = voucherCode;
+            } else {
+                rewardBanner.classList.add('hidden');
+            }
+
+            // PIN display in staff
+            document.getElementById('current-pin-display').innerText = systemState.staffPin;
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('history-list');
+            const userHistory = purchaseLogs.filter(log => log.phone === currentUser.phone);
+
+            document.getElementById('total-logs-count').innerText = `${userHistory.length} records`;
+
+            if (userHistory.length === 0) {
+                list.innerHTML = `<p class="text-center text-xs text-gray-400 py-4">Wala pang na-i-log na purchase si ${currentUser.name}.</p>`;
+                return;
+            }
+
+            list.innerHTML = userHistory.map(log => {
+                const isRedemption = log.stampEarned === 0;
+                return `
+                    <div class="p-2.5 rounded-xl ${isRedemption ? 'bg-amber-50 border border-amber-200' : 'bg-coffee-50/60 border border-coffee-100'} flex justify-between items-center text-xs">
+                        <div class="flex items-center space-x-2.5">
+                            <div class="w-7 h-7 rounded-full ${isRedemption ? 'bg-amber-500 text-white' : 'bg-coffee-200 text-coffee-800'} flex items-center justify-center font-bold text-xs">
+                                ${isRedemption ? '<i class="fa-solid fa-gift"></i>' : '+1'}
+                            </div>
+                            <div>
+                                <div class="font-semibold text-coffee-950">${log.item}</div>
+                                <div class="text-[10px] text-gray-400">${log.date} • Total: ${log.receipt}</div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] font-mono text-gray-400 block">${log.timestamp}</span>
+                            <span class="text-[10px] ${isRedemption ? 'text-amber-700 font-bold' : 'text-coffee-600'}">
+                                ${isRedemption ? 'REWARD CLAIMED' : 'STAMP EARNED'}
+                            </span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderStaffAccounts() {
+            const list = document.getElementById('staff-account-list');
+            if (!list) return;
+
+            const accounts = customerProfiles
+                .filter(profile => profile && (profile.customerId || profile.name || profile.phone))
+                .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
+            if (!accounts.length) {
+                list.innerHTML = '<p class="text-center text-xs text-gray-400 py-4">No customer accounts saved yet.</p>';
+                return;
+            }
+
+            list.innerHTML = accounts.map(profile => {
+                const name = profile.name || 'Unnamed Customer';
+                const phone = profile.phone || 'No mobile';
+                const stamps = Number(profile.stamps || 0);
+                const id = profile.customerId || 'No ID';
+                const lastVisit = profile.lastVisit || 'No visits';
+                const isSelected = currentUser.customerId && currentUser.customerId === profile.customerId;
+
+                return `
+                    <div class="p-3 rounded-xl ${isSelected ? 'bg-amber-50 border border-amber-200' : 'bg-coffee-50 border border-coffee-100'}">
+                        <div class="flex justify-between items-start gap-2">
+                            <div class="min-w-0">
+                                <div class="font-semibold text-coffee-900 text-xs truncate">${name}</div>
+                                <div class="text-[10px] text-gray-500 truncate">ID: ${id}</div>
+                                <div class="text-[10px] text-gray-500 truncate">Mobile: ${phone}</div>
+                                <div class="text-[10px] text-gray-500 truncate">Last Visit: ${lastVisit}</div>
+                            </div>
+                            <div class="flex flex-col items-end gap-1">
+                                <span class="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-1 rounded-md whitespace-nowrap">${stamps}/5</span>
+                                <button type="button" onclick="selectStaffAccount('${id}')" class="text-[10px] bg-coffee-700 hover:bg-coffee-800 text-white px-2 py-1 rounded-lg">
+                                    ${isSelected ? 'Selected' : 'View'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function refreshStaffAccounts() {
+            loadSystemData();
+            updateCustomerUI();
+            renderHistory();
+            renderStaffAccounts();
+            showToast('Accounts Refreshed', 'Registered customer list has been refreshed.', 'info');
+        }
+
+        function selectStaffAccount(customerId) {
+            const profile = customerProfiles.find(entry => entry.customerId === customerId);
+            if (!profile) return;
+
+            currentUser = { ...profile };
+            ensureCustomerId();
+            saveSystemData();
+            updateCustomerUI();
+            renderHistory();
+            showToast("Customer Selected", `${currentUser.name} is now the active customer in staff mode.`, "info");
+        }
+
+        // ==========================================
+        // STAFF VIEW & CONTROLS
+        // ==========================================
+
+        function toggleView() {
+            const customerView = document.getElementById('customer-view');
+            const staffView = document.getElementById('staff-view');
+            const navBtnText = document.getElementById('nav-mode-text');
+
+            if (systemState.currentView === 'customer') {
+                const enteredPass = prompt("Enter 4-digit Staff Password:", "");
+                if (enteredPass === null) return;
+
+                const cleanedPass = enteredPass.trim();
+                if (!/^\d{6}$/.test(cleanedPass) || cleanedPass !== systemState.staffPin) {
+                    showToast("Access Denied", "Incorrect 6-digit staff password.", "error");
+                    return;
+                }
+
+                systemState.currentView = 'staff';
+                systemState.staffAccessMode = 'single-master';
+                customerView.classList.add('hidden');
+                staffView.classList.remove('hidden');
+                navBtnText.innerText = "Customer View";
+                renderStaffAccounts();
+            } else {
+                systemState.currentView = 'customer';
+                staffView.classList.add('hidden');
+                customerView.classList.remove('hidden');
+                navBtnText.innerText = "Staff View";
+            }
+        }
+
+        function promptChangePIN() {
+            const newPin = prompt("Enter the new 6-digit Staff Password:", systemState.staffPin);
+            if (newPin !== null) {
+                const cleanedPin = newPin.trim();
+                if (/^\d{6}$/.test(cleanedPin)) {
+                    systemState.staffPin = cleanedPin;
+                    saveSystemData();
+                    updateCustomerUI();
+                    showToast("Password Updated", `The new Staff Password is: ${systemState.staffPin}`, "success");
+                } else {
+                    alert("Password must be exactly 6 digits.");
+                }
+            }
+        }
+
+        function staffAdjustStamp(delta) {
+            currentUser.stamps = Math.max(0, Math.min(5, currentUser.stamps + delta));
+            saveSystemData();
+            updateCustomerUI();
+            showToast("Stamps Adjusted", `Updated stamp count: ${currentUser.stamps}/5`, "info");
+        }
+
+        function staffResetStamps() {
+            if (confirm(`Sigurado ka bang i-reset pabalik sa 0 ang stamps ni ${currentUser.name}?`)) {
+                currentUser.stamps = 0;
+                saveSystemData();
+                updateCustomerUI();
+                showToast("Stamps Reset", "Na-reset na ang stamps sa 0.", "info");
+            }
+        }
+
+        // ==========================================
+        // USER MODAL & UTILS
+        // ==========================================
+
+        function openUserModal() {
+            const staffMode = systemState.currentView === 'staff';
+            const idInput = document.getElementById('input-user-id');
+            document.getElementById('customer-account-title').innerText = staffMode ? 'Customer Account' : 'Customer Login';
+            idInput.value = currentUser.customerId || '';
+            idInput.readOnly = Boolean(currentUser.customerId) || staffMode;
+            document.getElementById('input-user-name').value = currentUser.name;
+            document.getElementById('input-user-phone').value = currentUser.phone;
+            document.getElementById('user-modal').classList.remove('hidden');
+        }
+
+        function closeUserModal() {
+            document.getElementById('user-modal').classList.add('hidden');
+        }
+
+        function normalizeCustomerName(name) {
+            const cleaned = (name || '').replace(/\s+/g, ' ').trim();
+            if (!cleaned) return '';
+            if (!/^[A-Za-z ]+$/.test(cleaned)) return '';
+
+            const parts = cleaned.split(' ').filter(Boolean);
+            if (parts.length < 2) return '';
+            if (parts.some(part => part.length < 2 || !/^[A-Za-z]+$/.test(part))) return '';
+
+            return parts.map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()).join(' ');
+        }
+
+        function handleSaveUser(e) {
+            e.preventDefault();
+
+            const enteredId = document.getElementById('input-user-id').value.trim();
+            const name = document.getElementById('input-user-name').value.trim();
+            const phone = document.getElementById('input-user-phone').value.trim();
+            const validName = normalizeCustomerName(name);
+
+            if (!validName) {
+                showToast("Real Name Required", "Please enter your real full name using letters only, with at least a first and last name.", "error");
+                return;
+            }
+
+            if (!/^\d{11}$/.test(phone)) {
+                showToast("Invalid Mobile Number", "Please enter a valid 11-digit mobile number.", "error");
+                return;
+            }
+
+            if (systemState.currentView !== 'staff') {
+                if (enteredId && enteredId !== currentUser.customerId) {
+                    const profile = restoreCurrentUserFromProfile(enteredId);
+                    if (!profile) {
+                        showToast("ID Not Found", "No customer account is attached to that ID.", "error");
+                        return;
+                    }
+
+                    if (profile.name && validName.toLowerCase() !== profile.name.toLowerCase()) {
+                        showToast("Name Does Not Match", "Please use the real full name associated with this account.", "error");
+                        return;
+                    }
+
+                    currentUser.name = profile.name || validName;
+                    currentUser.phone = phone;
+                    saveSystemData();
+                    updateCustomerUI();
+                    renderHistory();
+                    closeUserModal();
+                    showToast("Welcome Back", `${currentUser.name} logged in using ID ${currentUser.customerId}.`, "success");
+                    return;
+                }
+
+                if (!currentUser.customerId) {
+                    currentUser.customerId = generateCustomerId();
+                }
+
+                currentUser.name = validName;
+                currentUser.phone = phone;
+                syncCurrentUserToProfiles();
+                saveSystemData();
+                updateCustomerUI();
+                renderHistory();
+                closeUserModal();
+                showToast("Profile Saved", `Saved profile for ${currentUser.name} (${currentUser.customerId}).`, "success");
+                return;
+            }
+
+            const finalId = currentUser.customerId || generateCustomerId();
+            currentUser.customerId = finalId;
+            currentUser.name = validName;
+            currentUser.phone = phone;
+            syncCurrentUserToProfiles();
+            saveSystemData();
+            updateCustomerUI();
+            renderHistory();
+            closeUserModal();
+            showToast("Account Changed", `Naka-login na bilang: ${currentUser.name} (${currentUser.customerId})`, "info");
+        }
+
+        // Notification Toast Helper
+        function showToast(title, message, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastTitle = document.getElementById('toast-title');
+            const toastMsg = document.getElementById('toast-message');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastTitle.innerText = title;
+            toastMsg.innerText = message;
+
+            if (type === 'error') {
+                toastIcon.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-red-400"></i>`;
+                toast.classList.add('border-red-500');
+            } else if (type === 'success') {
+                toastIcon.innerHTML = `<i class="fa-solid fa-circle-check text-green-400"></i>`;
+                toast.classList.add('border-green-500');
+            } else {
+                toastIcon.innerHTML = `<i class="fa-solid fa-circle-info text-amber-400"></i>`;
+                toast.classList.add('border-coffee-500');
+            }
+
+            toast.classList.remove('hidden');
+
+            setTimeout(() => {
+                hideToast();
+            }, 4000);
+        }
+
+        function hideToast() {
+            document.getElementById('toast').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
